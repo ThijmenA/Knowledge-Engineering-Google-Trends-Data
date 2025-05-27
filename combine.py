@@ -37,4 +37,4 @@ combined_data = combined_data.rename(columns={
 })
 
 # %%
-combined_data.to_csv("./combined_data.csv", index=True)
+combined_data.to_csv("./combined_data_without_index.csv", index=False)
