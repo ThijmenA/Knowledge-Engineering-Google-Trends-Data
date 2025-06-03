@@ -43,6 +43,8 @@ combined_data = combined_data.rename(columns={
     "avg_wind_speed": "wind_speed",
     "avg_temperature": "temperature"
 })
+combined_data.reset_index(drop=False, inplace=True)
+combined_data = combined_data.rename(columns={"index": "id"})
 
 # %%
 combined_data.to_csv("./combined_data_without_index.csv", index=False)
