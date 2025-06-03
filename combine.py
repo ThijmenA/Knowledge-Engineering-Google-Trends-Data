@@ -8,9 +8,8 @@ sales_data = sales_data[sales_data["year_month"] >= "2019-01"]
 sales_data = sales_data[sales_data["year_month"] <= "2025-03"]
 
 # %%
-precipitation_data = pd.read_csv("./monthly_avg_precipitation.csv")
-precipitation_data["year_month"] = pd.to_datetime(precipitation_data["YEAR_MONTH"], format="%Y-%m")
-precipitation_data = precipitation_data.drop(columns=["YEAR_MONTH"])
+precipitation_data = pd.read_csv("./monthly_national_avg_rainfall.csv")
+precipitation_data["year_month"] = pd.to_datetime(precipitation_data["year_month"], format="%Y-%m")
 precipitation_data = precipitation_data[precipitation_data["year_month"] >= "2019-01"]
 precipitation_data = precipitation_data[precipitation_data["year_month"] <= "2025-03"]
 
