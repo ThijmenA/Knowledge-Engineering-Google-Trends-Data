@@ -37,6 +37,7 @@ MERGE(fos:FoodSearch {value: toFloat(row["Search data food and drugstore items"]
 MERGE(nss:NonFoodSearch {value: toFloat(row["Search data other non-food"]), name: "Search data other non-food"})
 
 // Create relationships for Google Trends data
+MERGE (d)-[:google_trends]->(g)
 MERGE (g)-[:fashion]->(fss)
 MERGE (g)-[:electronics]->(ess)
 MERGE (g)-[:food]->(fos)
@@ -61,5 +62,3 @@ MERGE (s)-[:fashion]->(rfa)
 MERGE (s)-[:electronics]->(rel)
 MERGE (s)-[:food]->(rfo)
 MERGE (s)-[:non_food]->(rnf)
-
-
