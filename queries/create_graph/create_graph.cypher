@@ -7,7 +7,7 @@ MERGE (y:Year {value: parts[0]})
 MERGE (m:Month {value: parts[1]})
 
 // Create nodes for weather data
-MERGE (w:Weather {id: row.id}) // TODO: delete this node or add some kind of data
+MERGE (w:Weather {id: row.id, score: row.overall_weather_score}) // TODO: delete this node or add some kind of data
 MERGE (ws:WindSpeed {value: toFloat(row.wind_speed), unit: "m/s"}) // maybe the units should be in extra nodes? This way we would only store them once
 MERGE (te:Temperature {value: toFloat(row.temperature), unit: "°C"})
 MERGE (rh:Rain {value: toFloat(row.rainfall), unit: "mm"})
