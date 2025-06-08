@@ -31,7 +31,7 @@ MERGE(g:GoogleTrends {id: row.id,
     average: (toFloat(row["Search data clothes and fashion items"]) + toFloat(row["Search data consumer electronics"]) + toFloat(row["Search data food and drugstore items"]) + toFloat(row["Search data food and drugstore items"]) + toFloat(row["Search data other non-food"])) / 4,
     total: toFloat(row["Search data clothes and fashion items"]) + toFloat(row["Search data consumer electronics"]) + toFloat(row["Search data food and drugstore items"]) + toFloat(row["Search data food and drugstore items"]) + toFloat(row["Search data other non-food"])
 }) // TODO: value: average of all trends
-MERGE(fss:FashionSeach {value: toFloat(row["Search data clothes and fashion items"]), name: "Search data clothes and fashion items"})
+MERGE(fss:FashionSearch {value: toFloat(row["Search data clothes and fashion items"]), name: "Search data clothes and fashion items"})
 MERGE(ess:ElectronicsSearch {value: toFloat(row["Search data consumer electronics"]), name: "Search data consumer electronics"})
 MERGE(fos:FoodSearch {value: toFloat(row["Search data food and drugstore items"]), name: "Search data food and drugstore items"})
 MERGE(nss:NonFoodSearch {value: toFloat(row["Search data other non-food"]), name: "Search data other non-food"})
