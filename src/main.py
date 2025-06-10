@@ -341,7 +341,6 @@ def update_online_sales_variation(relayoutData):
     Input("search-vs-sales-categories", "relayoutData"),
 )
 def update_search_vs_online_sales(relayoutData):
-    # Determine which query to use based on relayoutData
     if (
         relayoutData
         and "xaxis.range[0]" in relayoutData
@@ -355,7 +354,6 @@ def update_search_vs_online_sales(relayoutData):
         df = get_sales_google_trends_data(driver)
         title = "Average Search Interest vs. Online Sales"
 
-    # Compute average search interest
     search_cols = [
         "fashion_search",
         "electronics_search",
@@ -366,7 +364,6 @@ def update_search_vs_online_sales(relayoutData):
 
     fig = go.Figure()
 
-    # Left y-axis: Avg Search Interest
     fig.add_trace(
         go.Scatter(
             x=df["date"],
@@ -378,7 +375,6 @@ def update_search_vs_online_sales(relayoutData):
             yaxis="y",
         )
     )
-    # Right y-axis: Retail Sale via Internet
     fig.add_trace(
         go.Scatter(
             x=df["date"],
@@ -395,10 +391,12 @@ def update_search_vs_online_sales(relayoutData):
         title=title,
         xaxis_title="Date",
         yaxis=dict(
-            title=dict(text="Avg Search Interest"),
+            title=dict(text="Avg Search Interest", font=dict(color="#1f77b4")),
+            tickfont=dict(color="#1f77b4"),
         ),
         yaxis2=dict(
-            title=dict(text="Retail Sale via Internet"),
+            title=dict(text="Retail Sale via Internet", font=dict(color="#ff7f0e")),
+            tickfont=dict(color="#ff7f0e"),
             overlaying="y",
             side="right",
         ),
@@ -498,9 +496,15 @@ def update_search_vs_sales_categories(relayoutData):
             secondary_y=True,
         )
         fig.update_yaxes(
-            title_text="Search Interest", row=i + 1, col=1, secondary_y=False
+            title_text="Search Interest",
+            row=i + 1,
+            col=1,
+            secondary_y=False,
+            color=search_color,
         )
-        fig.update_yaxes(title_text="Sales", row=i + 1, col=1, secondary_y=True)
+        fig.update_yaxes(
+            title_text="Sales", row=i + 1, col=1, secondary_y=True, color=sales_color
+        )
 
     fig.update_xaxes(title_text="Date", row=n, col=1, tickangle=45)
     fig.update_layout(
@@ -514,4 +518,4 @@ def update_search_vs_sales_categories(relayoutData):
 
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)
