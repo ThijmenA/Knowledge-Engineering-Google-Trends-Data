@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import dash
 import plotly.express as px
 import plotly.graph_objs as go
@@ -100,6 +102,25 @@ app.layout = html.Div(
                             ],
                         ),
                         dcc.Graph(id="online-sales-variation", style={"width": "100%"}),
+                        html.H3(
+                            "Answer:",
+                            style={"margin-left": "1.5cm", "font-family": "Arial"},
+                        ),
+                        html.Div(
+                            children=[
+                                html.P(
+                                    "The analysis shows that weather conditions such as temperature, precipitation, and wind speed have a significant impact on purchasing behavior in the Netherlands."
+                                ),
+                                html.P(
+                                    "For instance, higher rain level tend to increase online sales. And higher temperatures generally leads to lower sales overall."
+                                ),
+                            ],
+                            style={
+                                "margin-left": "1.5cm",
+                                "margin-right": "1.5cm",
+                                "font-family": "Arial",
+                            },
+                        ),
                     ]
                 ),
                 html.Div(
@@ -124,6 +145,25 @@ app.layout = html.Div(
                             id="monthly-sales-boxplots",
                             figure=create_monthly_sales_boxplots(),
                             style={"width": "100%"},
+                        ),
+                        html.H3(
+                            "Answer:",
+                            style={"margin-left": "1.5cm", "font-family": "Arial"},
+                        ),
+                        html.Div(
+                            children=[
+                                html.P(
+                                    "We can observe some seasonal trends in the purchasing patterns of Dutch e-commerce."
+                                ),
+                                html.P(
+                                    "In paticular, we can see that online sales tend to increase during the winter months. Electonics sales are also higher during the winter months, while food and drugstore items tend to be more stable throughout the year."
+                                ),
+                            ],
+                            style={
+                                "margin-left": "1.5cm",
+                                "margin-right": "1.5cm",
+                                "font-family": "Arial",
+                            },
                         ),
                     ]
                 ),
@@ -152,6 +192,25 @@ app.layout = html.Div(
                         dcc.Graph(
                             id="search-vs-sales-categories",
                             style={"width": "100%"},
+                        ),
+                        html.H3(
+                            "Answer:",
+                            style={"margin-left": "1.5cm", "font-family": "Arial"},
+                        ),
+                        html.Div(
+                            children=[
+                                html.P(
+                                    "The analysis shows that search interests do correlate with actual purchasing decisions, and they can be used to predict future sales trends."
+                                ),
+                                html.P(
+                                    "Especially for electronics and fashion categories, search interests tend to lead actual sales. For food and non-food categories, the correlation is less strong."
+                                ),
+                            ],
+                            style={
+                                "margin-left": "1.5cm",
+                                "margin-right": "1.5cm",
+                                "font-family": "Arial",
+                            },
                         ),
                     ]
                 ),
@@ -247,7 +306,9 @@ def update_heatmap(relayoutData, relayoutData2):
         end_date = relayoutData["xaxis.range[1]"].split(" ")[0]
         df = get_sales_weather_data_by_date_range(driver, start_date, end_date)
 
-        title = f"Heatmap for {start_date[:10]} to {end_date[:10]}"
+        start_fmt = datetime.strptime(start_date, "%Y-%m-%d").strftime("%b %Y")
+        end_fmt = datetime.strptime(end_date, "%Y-%m-%d").strftime("%b %Y")
+        title = f"Heatmap for {start_fmt} to {end_fmt}"
     elif (
         relayoutData2
         and "xaxis.range[0]" in relayoutData2
@@ -257,7 +318,9 @@ def update_heatmap(relayoutData, relayoutData2):
         end_date = relayoutData2["xaxis.range[1]"].split(" ")[0]
         df = get_sales_weather_data_by_date_range(driver, start_date, end_date)
 
-        title = f"Heatmap for {start_date[:10]} to {end_date[:10]}"
+        start_fmt = datetime.strptime(start_date, "%Y-%m-%d").strftime("%b %Y")
+        end_fmt = datetime.strptime(end_date, "%Y-%m-%d").strftime("%b %Y")
+        title = f"Heatmap for {start_fmt} to {end_fmt}"
     else:
         df = get_sales_weather_data(driver)
         title = "Heatmap for all dates"
@@ -288,6 +351,8 @@ def update_heatmap(relayoutData, relayoutData2):
         color_continuous_scale="RdBu",
         labels=dict(x="Weather", y="Sales Category", color="Correlation"),
         title=title,
+        zmin=-1,
+        zmax=1,
     )
     fig.update_layout(xaxis_title="Weather", yaxis_title="Sales Category")
     return fig
