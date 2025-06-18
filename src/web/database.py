@@ -4,7 +4,7 @@ from pathlib import Path
 import dotenv
 from neo4j import GraphDatabase
 
-PATH = Path(__file__).parent.parent
+PATH = Path(__file__).parent.parent.parent
 
 load_status = dotenv.load_dotenv(PATH / "Neo4j-6fcd424a-Created-2025-05-28.txt")
 
