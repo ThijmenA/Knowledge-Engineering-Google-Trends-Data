@@ -77,7 +77,7 @@ app.layout = html.Div(
                             style={"margin-left": "1.5cm", "font-family": "Arial"},
                         ),
                         html.H3(
-                            "How do weather conditions (temperature, precipitation, wind) affect purchasing behavior in the Netherlands?",
+                            "How do weather conditions (temperature, precipitation, wind) affect purchasing behaviour in the Netherlands?",
                             style={
                                 "margin-left": "1.5cm",
                                 "font-family": "Arial",
@@ -87,6 +87,7 @@ app.layout = html.Div(
                         html.Div(
                             style={
                                 "display": "flex",
+                                "flexDirection": "row",
                                 "justifyContent": "space-between",
                                 "width": "100%",
                             },
@@ -95,9 +96,26 @@ app.layout = html.Div(
                                     id="line-graph",
                                     style={"width": "69%"},
                                 ),
-                                dcc.Graph(
-                                    id="heatmap",
-                                    style={"width": "30%"},
+                                html.Div(
+                                    style={
+                                        "display": "flex",
+                                        "flexDirection": "column",
+                                        "width": "30%",
+                                    },
+                                    children=[
+                                        html.Div(
+                                            dcc.Graph(
+                                                id="heatmap",
+                                                style={"width": "100%"},
+                                            )
+                                        ),
+                                        html.Div(
+                                            dcc.Graph(
+                                                id="heatmap-seasonality-removed",
+                                                style={"width": "100%"},
+                                            )
+                                        ),
+                                    ],
                                 ),
                             ],
                         ),
@@ -343,6 +361,96 @@ def update_heatmap(relayoutData, relayoutData2):
             "temp": "Temperature",
         },
     )
+    fig = px.imshow(
+        sub_corr.T,  # Transpose so sales categories are y, weather is x
+        x=sub_corr.T.columns,
+        y=sub_corr.T.index,
+        text_auto=True,
+        color_continuous_scale="RdBu",
+        labels=dict(x="Weather", y="Sales Category", color="Correlation"),
+        title=title,
+        zmin=-1,
+        zmax=1,
+    )
+    fig.update_layout(xaxis_title="Weather", yaxis_title="Sales Category")
+    return fig
+
+
+@app.callback(
+    Output("heatmap-seasonality-removed", "figure"),
+    Input("line-graph", "relayoutData"),
+    Input("online-sales-variation", "relayoutData"),
+)
+def update_heatmap_seasonality_removed(relayoutData, relayoutData2):
+    weather_cols = [
+        "rain",
+        "wind_speed",
+        "temp",
+    ]
+    sales_cols = [
+        "multi_channel",
+        "retail_sale_of_clothes_and_fashion_items",
+        "retail_sale_of_consumer_electronics",
+        "retail_sale_of_food_and_drugstore_items",
+        "retail_sale_of_other_non_food",
+        "retail_sale_via_internet",
+        "retail_trade",
+    ]
+    title = "Correlation: Weather vs. Sales Categories"
+    if (
+        relayoutData
+        and "xaxis.range[0]" in relayoutData
+        and "xaxis.range[1]" in relayoutData
+    ):
+        start_date = relayoutData["xaxis.range[0]"].split(" ")[0]
+        end_date = relayoutData["xaxis.range[1]"].split(" ")[0]
+        df = get_sales_weather_data_by_date_range(driver, start_date, end_date)
+
+        start_fmt = datetime.strptime(start_date, "%Y-%m-%d").strftime("%b %Y")
+        end_fmt = datetime.strptime(end_date, "%Y-%m-%d").strftime("%b %Y")
+        title = f"Heatmap for {start_fmt} to {end_fmt}"
+    elif (
+        relayoutData2
+        and "xaxis.range[0]" in relayoutData2
+        and "xaxis.range[1]" in relayoutData2
+    ):
+        start_date = relayoutData2["xaxis.range[0]"].split(" ")[0]
+        end_date = relayoutData2["xaxis.range[1]"].split(" ")[0]
+        df = get_sales_weather_data_by_date_range(driver, start_date, end_date)
+
+        start_fmt = datetime.strptime(start_date, "%Y-%m-%d").strftime("%b %Y")
+        end_fmt = datetime.strptime(end_date, "%Y-%m-%d").strftime("%b %Y")
+        title = f"Heatmap (Seasonality Removed) for {start_fmt} to {end_fmt}"
+    else:
+        df = get_sales_weather_data(driver)
+        title = "Heatmap (Seasonality Removed) for all dates"
+
+    df_adj = df.copy()
+    seasonal_col = "month"
+
+    for col in weather_cols + sales_cols:
+        monthly_mean = df.groupby(seasonal_col)[col].transform("mean")
+        df_adj[col] = df[col] - monthly_mean
+
+    sub_corr = df_adj[weather_cols + sales_cols].corr().loc[weather_cols, sales_cols]
+    sub_corr = sub_corr.round(3)
+    sub_corr = sub_corr.rename(
+        columns={
+            "multi_channel": "Multi-Channel Sales",
+            "retail_sale_of_clothes_and_fashion_items": "Fashion Sales",
+            "retail_sale_of_consumer_electronics": "Electronics Sales",
+            "retail_sale_of_food_and_drugstore_items": "Food Sales",
+            "retail_sale_of_other_non_food": "Other Non-Food Sales",
+            "retail_sale_via_internet": "Online Sales",
+            "retail_trade": "Retail Trade",
+        },
+        index={
+            "rain": "Rain",
+            "wind_speed": "Wind Speed",
+            "temp": "Temperature",
+        },
+    )
+
     fig = px.imshow(
         sub_corr.T,  # Transpose so sales categories are y, weather is x
         x=sub_corr.T.columns,
