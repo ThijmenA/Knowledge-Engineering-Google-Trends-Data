@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import dash
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
 from dash import Input, Output, dcc, html
@@ -61,6 +62,164 @@ def create_monthly_sales_boxplots():
     return fig
 
 
+def create_weather_monthly_avg_variation_plot():
+    # Map to DataFrame column names
+    weather_cols = ["temp", "rain", "wind_speed"]
+    display_names = {
+        "temp": "Temperature",
+        "rain": "Precipitation",
+        "wind_speed": "Wind Speed",
+    }
+    df = get_sales_weather_data(driver)
+    # Ensure 'month' column exists
+    if "month" not in df.columns:
+        df["month"] = pd.to_datetime(df["date"]).dt.month
+
+    monthly_weather_avg = df.groupby("month")[weather_cols].transform("mean")
+    weather_variation = df[weather_cols] - monthly_weather_avg
+
+    fig = make_subplots(
+        rows=len(weather_cols),
+        cols=1,
+        shared_xaxes=True,
+        subplot_titles=[
+            f"{display_names[col]} with Monthly Avg and Variation"
+            for col in weather_cols
+        ],
+        vertical_spacing=0.05,
+    )
+
+    for i, col in enumerate(weather_cols):
+        # Actual values
+        fig.add_trace(
+            go.Scatter(
+                x=df["date"],
+                y=df[col],
+                mode="lines+markers",
+                name=f"{display_names[col]} (actual)",
+                line=dict(color="blue"),
+            ),
+            row=i + 1,
+            col=1,
+        )
+        # Monthly average
+        fig.add_trace(
+            go.Scatter(
+                x=df["date"],
+                y=monthly_weather_avg[col],
+                mode="lines",
+                name="Monthly Avg",
+                line=dict(dash="dash", color="orange"),
+            ),
+            row=i + 1,
+            col=1,
+        )
+        # Variation
+        fig.add_trace(
+            go.Scatter(
+                x=df["date"],
+                y=weather_variation[col],
+                mode="lines",
+                name="Variation",
+                line=dict(dash="dot", color="green"),
+            ),
+            row=i + 1,
+            col=1,
+        )
+        fig.update_yaxes(title_text=display_names[col], row=i + 1, col=1)
+
+    fig.update_xaxes(title_text="Date", row=len(weather_cols), col=1, tickangle=45)
+    fig.update_layout(
+        height=350 * len(weather_cols),
+        showlegend=True,
+        title="Weather Variables: Actual, Monthly Average, and Variation",
+        margin=dict(l=40, r=40, t=60, b=40),
+    )
+    return fig
+
+
+def create_weather_monthly_avg_variation_plot2():
+    weather_cols = ["temp", "rain", "wind_speed"]
+    display_names = {
+        "temp": "Temperature",
+        "rain": "Precipitation",
+        "wind_speed": "Wind Speed",
+    }
+    df = get_sales_weather_data(driver)
+    if "month" not in df.columns:
+        df["month"] = pd.to_datetime(df["date"]).dt.month
+
+    monthly_weather_avg = df.groupby("month")[weather_cols].transform("mean")
+    weather_variation = df[weather_cols] - monthly_weather_avg
+
+    # Enable secondary y-axis for each row
+    fig = make_subplots(
+        rows=len(weather_cols),
+        cols=1,
+        shared_xaxes=True,
+        subplot_titles=[
+            f"{display_names[col]} with Monthly Avg and Variation"
+            for col in weather_cols
+        ],
+        vertical_spacing=0.05,
+        specs=[[{"secondary_y": True}] for _ in weather_cols],
+    )
+
+    for i, col in enumerate(weather_cols):
+        # Actual values (primary y-axis)
+        fig.add_trace(
+            go.Scatter(
+                x=df["date"],
+                y=df[col],
+                mode="lines+markers",
+                name=f"{display_names[col]} (actual)",
+                line=dict(color="blue"),
+            ),
+            row=i + 1,
+            col=1,
+            secondary_y=False,
+        )
+        # Monthly average (primary y-axis)
+        fig.add_trace(
+            go.Scatter(
+                x=df["date"],
+                y=monthly_weather_avg[col],
+                mode="lines",
+                name="Monthly Avg",
+                line=dict(dash="dash", color="orange"),
+            ),
+            row=i + 1,
+            col=1,
+            secondary_y=False,
+        )
+        # Variation (secondary y-axis)
+        fig.add_trace(
+            go.Scatter(
+                x=df["date"],
+                y=weather_variation[col],
+                mode="lines",
+                name="Variation",
+                line=dict(dash="dot", color="green"),
+            ),
+            row=i + 1,
+            col=1,
+            secondary_y=True,
+        )
+        fig.update_yaxes(
+            title_text=display_names[col], row=i + 1, col=1, secondary_y=False
+        )
+        fig.update_yaxes(title_text="Variation", row=i + 1, col=1, secondary_y=True)
+
+    fig.update_xaxes(title_text="Date", row=len(weather_cols), col=1, tickangle=45)
+    fig.update_layout(
+        height=350 * len(weather_cols),
+        showlegend=True,
+        title="Weather Variables: Actual, Monthly Average, and Variation",
+        margin=dict(l=40, r=40, t=60, b=40),
+    )
+    return fig
+
+
 app.layout = html.Div(
     children=[
         html.Div(
@@ -68,6 +227,21 @@ app.layout = html.Div(
             children=[
                 html.Div(
                     children=[
+                        html.H1(
+                            "E-commerce and Weather Analysis",
+                            style={
+                                "textAlign": "left",
+                                "margin-left": "1.5cm",
+                                "font-family": "Arial",
+                                "color": "#003366",
+                                "font-size": "40px",
+                            },
+                        ),
+                        # dcc.Graph(
+                        #    id="weather-monthly-avg-variation",
+                        #    figure=create_weather_monthly_avg_variation_plot(),
+                        #    style={"width": "100%"},
+                        # ),
                         html.H1(
                             "Research Question 1: ",
                             style={"margin-left": "1.5cm", "font-family": "Arial"},
