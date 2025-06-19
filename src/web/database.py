@@ -8,9 +8,6 @@ PATH = Path(__file__).parent.parent.parent
 
 load_status = dotenv.load_dotenv(PATH / "Neo4j-6fcd424a-Created-2025-05-28.txt")
 
-if load_status is False:
-    raise RuntimeError("Environment variables not loaded.")
-
 URI = os.getenv("NEO4J_URI")
 if not URI:
     raise RuntimeError("NEO4J_URI environment variable not set.")
