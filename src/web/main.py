@@ -865,4 +865,4 @@ def update_search_vs_sales_categories(relayoutData):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False, host="0.0.0.0", port=8050)
