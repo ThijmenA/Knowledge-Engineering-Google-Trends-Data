@@ -62,82 +62,6 @@ def create_monthly_sales_boxplots():
     return fig
 
 
-def create_weather_monthly_avg_variation_plot():
-    # Map to DataFrame column names
-    weather_cols = ["temp", "rain", "wind_speed"]
-    display_names = {
-        "temp": "Temperature",
-        "rain": "Precipitation",
-        "wind_speed": "Wind Speed",
-    }
-    df = get_sales_weather_data(driver)
-    # Ensure 'month' column exists
-    if "month" not in df.columns:
-        df["month"] = pd.to_datetime(df["date"]).dt.month
-
-    monthly_weather_avg = df.groupby("month")[weather_cols].transform("mean")
-    weather_variation = df[weather_cols] - monthly_weather_avg
-
-    fig = make_subplots(
-        rows=len(weather_cols),
-        cols=1,
-        shared_xaxes=True,
-        subplot_titles=[
-            f"{display_names[col]} with Monthly Avg and Variation"
-            for col in weather_cols
-        ],
-        vertical_spacing=0.05,
-    )
-
-    for i, col in enumerate(weather_cols):
-        # Actual values
-        fig.add_trace(
-            go.Scatter(
-                x=df["date"],
-                y=df[col],
-                mode="lines+markers",
-                name=f"{display_names[col]} (actual)",
-                line=dict(color="blue"),
-            ),
-            row=i + 1,
-            col=1,
-        )
-        # Monthly average
-        fig.add_trace(
-            go.Scatter(
-                x=df["date"],
-                y=monthly_weather_avg[col],
-                mode="lines",
-                name="Monthly Avg",
-                line=dict(dash="dash", color="orange"),
-            ),
-            row=i + 1,
-            col=1,
-        )
-        # Variation
-        fig.add_trace(
-            go.Scatter(
-                x=df["date"],
-                y=weather_variation[col],
-                mode="lines",
-                name="Variation",
-                line=dict(dash="dot", color="green"),
-            ),
-            row=i + 1,
-            col=1,
-        )
-        fig.update_yaxes(title_text=display_names[col], row=i + 1, col=1)
-
-    fig.update_xaxes(title_text="Date", row=len(weather_cols), col=1, tickangle=45)
-    fig.update_layout(
-        height=350 * len(weather_cols),
-        showlegend=True,
-        title="Weather Variables: Actual, Monthly Average, and Variation",
-        margin=dict(l=40, r=40, t=60, b=40),
-    )
-    return fig
-
-
 def create_weather_monthly_avg_variation_plot2():
     weather_cols = ["temp", "rain", "wind_speed"]
     display_names = {
@@ -214,7 +138,6 @@ def create_weather_monthly_avg_variation_plot2():
     fig.update_layout(
         height=350 * len(weather_cols),
         showlegend=True,
-        title="Weather Variables: Actual, Monthly Average, and Variation",
         margin=dict(l=40, r=40, t=60, b=40),
     )
     return fig
@@ -415,7 +338,12 @@ app.layout = html.Div(
 @app.callback(
     Output("line-graph", "figure"), Input("online-sales-variation", "relayoutData")
 )
-def update_weather_variation_plot(relayoutData):
+def create_weather_monthly_avg_variation_plot(relayoutData):
+    display_names = {
+        "temp": "Temperature",
+        "rain": "Precipitation",
+        "wind_speed": "Wind Speed",
+    }
     weather_cols = [
         "rain",
         "wind_speed",
@@ -440,32 +368,114 @@ def update_weather_variation_plot(relayoutData):
         cols=1,
         shared_xaxes=True,
         subplot_titles=[
-            f"{col.replace('_', ' ').capitalize()} - Variation from Monthly Average"
+            f"{display_names[col]} with Monthly Avg and Variation"
             for col in weather_cols
         ],
-        vertical_spacing=0.03,  # Reduced spacing between plots
+        vertical_spacing=0.05,
     )
+
     for i, col in enumerate(weather_cols):
+        # Actual values
         fig.add_trace(
             go.Scatter(
                 x=df["date"],
-                y=weather_variation[col],
+                y=df[col],
                 mode="lines+markers",
-                name=f"{col.replace('_', ' ')} variation",
+                name=f"{display_names[col]} (actual)",
+                line=dict(),
             ),
             row=i + 1,
             col=1,
         )
-        fig.update_yaxes(title_text="Variation", row=i + 1, col=1)
-    fig.update_xaxes(
-        title_text="Date", row=len(weather_cols), col=1, nticks=len(df["date"].unique())
-    )
+        # Monthly average
+        fig.add_trace(
+            go.Scatter(
+                x=df["date"],
+                y=monthly_weather_avg[col],
+                mode="lines",
+                name="Monthly Avg",
+                line=dict(dash="dash"),
+            ),
+            row=i + 1,
+            col=1,
+        )
+        # Variation
+        fig.add_trace(
+            go.Scatter(
+                x=df["date"],
+                y=weather_variation[col],
+                mode="lines",
+                name="Variation",
+                line=dict(dash="dot"),
+            ),
+            row=i + 1,
+            col=1,
+        )
+        fig.update_yaxes(title_text=display_names[col], row=i + 1, col=1)
+
+    fig.update_xaxes(title_text="Date", row=len(weather_cols), col=1, tickangle=45)
     fig.update_layout(
-        height=300 * len(weather_cols),
-        showlegend=False,
-        title="Weather Variation from Monthly Average",
+        height=350 * len(weather_cols),
+        showlegend=True,
+        margin=dict(l=40, r=40, t=60, b=40),
     )
     return fig
+
+
+# @app.callback(
+#     Output("line-graph", "figure"), Input("online-sales-variation", "relayoutData")
+# )
+# def update_weather_variation_plot(relayoutData):
+#     weather_cols = [
+#         "rain",
+#         "wind_speed",
+#         "temp",
+#     ]
+#     if (
+#         relayoutData
+#         and "xaxis.range[0]" in relayoutData
+#         and "xaxis.range[1]" in relayoutData
+#     ):
+#         start_date = relayoutData["xaxis.range[0]"].split(" ")[0]
+#         end_date = relayoutData["xaxis.range[1]"].split(" ")[0]
+#         df = get_sales_weather_data_by_date_range(driver, start_date, end_date)
+#     else:
+#         df = get_sales_weather_data(driver)
+#
+#     monthly_weather_avg = df.groupby("month")[weather_cols].transform("mean")
+#     weather_variation = df[weather_cols] - monthly_weather_avg
+#
+#     fig = make_subplots(
+#         rows=len(weather_cols),
+#         cols=1,
+#         shared_xaxes=True,
+#         subplot_titles=[
+#             f"{col.replace('_', ' ').capitalize()} - Variation from Monthly Average"
+#             for col in weather_cols
+#         ],
+#         vertical_spacing=0.03,  # Reduced spacing between plots
+#     )
+#     for i, col in enumerate(weather_cols):
+#         fig.add_trace(
+#             go.Scatter(
+#                 x=df["date"],
+#                 y=weather_variation[col],
+#                 mode="lines+markers",
+#                 name=f"{col.replace('_', ' ')} variation",
+#             ),
+#             row=i + 1,
+#             col=1,
+#         )
+#         fig.update_yaxes(title_text="Variation", row=i + 1, col=1)
+#     fig.update_xaxes(
+#         title_text="Date", row=len(weather_cols), col=1, nticks=len(df["date"].unique())
+#     )
+#     fig.update_layout(
+#         height=300 * len(weather_cols),
+#         showlegend=False,
+#         title="Weather Variation from Monthly Average",
+#     )
+#     return fig
 
 
 @app.callback(
